@@ -1,5 +1,12 @@
 package m2u.eyelink.aibot;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +15,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import m2u.eyelink.aibot.component.KakaoRespGenerator;
@@ -24,6 +30,8 @@ import m2u.eyelink.aibot.domain.MessageOut;
 public class HomeController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
+
+	private static final String programDURL = "http://m2u-parstream.eastus.cloudapp.azure.com:9507/ProgramD/GetBotResponse?input=";
 	
 	@Autowired
 	private KakaoRespGenerator kakaoRespGenerator;
@@ -59,11 +67,55 @@ public class HomeController {
 		
 		logger.info("messageIn : {}", messageIn);
 		
-		MessageOut result = kakaoRespGenerator.createKakaoMessage(messageIn);
+		
+		// TODO : Program D API 호출하기
+		// URL : http://m2u-parstream.eastus.cloudapp.azure.com:9507/ProgramD/GetBotResponse?input={msg}
+		
+		// !! 텍스트 타입이라고 가정
+		String response = getResponse(messageIn.getContent());
+		
+		logger.info("response : {}", response);
+		
+		MessageOut result = kakaoRespGenerator.createKakaoMessage(response);
 		
 		return result;
 	}
 	
+	private String getResponse(String content) {
+		
+		StringBuffer sb = null;
+		 try {
+
+			URL url = new URL(programDURL + content);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Accept", "application/json");
+
+			if (conn.getResponseCode() != 200) {
+				throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+			}
+
+			BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+			String output;
+			
+			logger.info("Output from Server .... \n");
+			
+			sb = new StringBuffer();
+			while ((output = br.readLine()) != null) {
+				sb.append(output);
+			}
+			logger.info(">>>>> {}", sb.toString());
+			conn.disconnect();
+
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return sb.toString();
+	}
+
 	/**
 	 * 사용자가 플러스 친구를 추가했을 때 호출되는 서비스
 	 * @param friend

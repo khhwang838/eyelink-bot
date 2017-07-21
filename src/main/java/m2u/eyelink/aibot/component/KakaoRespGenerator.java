@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import m2u.eyelink.aibot.domain.Keyboard;
 import m2u.eyelink.aibot.domain.Message;
-import m2u.eyelink.aibot.domain.MessageIn;
 import m2u.eyelink.aibot.domain.MessageOut;
 
 @Component
@@ -19,12 +18,12 @@ public class KakaoRespGenerator {
 		return new Keyboard(type);
 	}
 
-	public MessageOut createKakaoMessage(MessageIn messageIn) {
+	public MessageOut createKakaoMessage(String response) {
 		
 		MessageOut result = new MessageOut();
 		
 		Message message = new Message();
-		message.setText("Test message response.");
+		message.setText(response);
 		result.setMessage(message);
 		
 		return result;
