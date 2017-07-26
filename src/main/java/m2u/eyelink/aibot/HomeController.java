@@ -37,10 +37,10 @@ public class HomeController {
 	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 
 	// for Azure deployed
-//	private static final String programDURL = "http://m2u-parstream.eastus.cloudapp.azure.com:9507/ProgramD/GetBotResponse?input=";
+	private static final String programDURL = "http://m2u-parstream.eastus.cloudapp.azure.com:9507/ProgramD/GetBotResponse?input=";
 	
 	// for local test
-	private static final String programDURL = "http://localhost:9080/ProgramD/GetBotResponse?input=";
+//	private static final String programDURL = "http://localhost:9080/ProgramD/GetBotResponse?input=";
 	
 	@Autowired
 	private KakaoRespGenerator kakaoRespGenerator;
@@ -58,7 +58,7 @@ public class HomeController {
 		
 		logger.info("Getting keyboard...");
 		List<String> buttons = new ArrayList<>();
-		buttons.add("1st 버튼");
+//		buttons.add("1st 버튼");
 //		buttons.add("두번째 버튼");
 		Keyboard result = kakaoRespGenerator.createKakaoKeyboard(buttons);
 		
