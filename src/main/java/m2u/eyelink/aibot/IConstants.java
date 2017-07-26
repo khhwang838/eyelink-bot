@@ -1,7 +1,7 @@
 package m2u.eyelink.aibot;
 
-interface IConstants {
-
+public interface IConstants {
+	
 	interface Type {
 		interface Message {
 			String TEXT = "text";
@@ -11,6 +11,10 @@ interface IConstants {
 			String TEXT = "text";
 			String BUTTONS = "buttons";
 		}
+	}
+	
+	interface CHARSET {
+		String DFLT_CHARSET = "utf-8";
 	}
 	
 }

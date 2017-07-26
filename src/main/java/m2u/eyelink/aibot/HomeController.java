@@ -3,9 +3,14 @@ package m2u.eyelink.aibot;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +36,11 @@ public class HomeController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 
-	private static final String programDURL = "http://m2u-parstream.eastus.cloudapp.azure.com:9507/ProgramD/GetBotResponse?input=";
+	// for Azure deployed
+//	private static final String programDURL = "http://m2u-parstream.eastus.cloudapp.azure.com:9507/ProgramD/GetBotResponse?input=";
+	
+	// for local test
+	private static final String programDURL = "http://localhost:9080/ProgramD/GetBotResponse?input=";
 	
 	@Autowired
 	private KakaoRespGenerator kakaoRespGenerator;
@@ -48,10 +57,10 @@ public class HomeController {
 	public Keyboard getKeyboard() {
 		
 		logger.info("Getting keyboard...");
-		
-		String type = "text";
-		
-		Keyboard result = kakaoRespGenerator.createKakaoKeyboard(type, null);
+		List<String> buttons = new ArrayList<>();
+		buttons.add("1st 버튼");
+//		buttons.add("두번째 버튼");
+		Keyboard result = kakaoRespGenerator.createKakaoKeyboard(buttons);
 		
 		return result;
 	}
@@ -67,11 +76,6 @@ public class HomeController {
 		
 		logger.info("messageIn : {}", messageIn);
 		
-		
-		// TODO : Program D API 호출하기
-		// URL : http://m2u-parstream.eastus.cloudapp.azure.com:9507/ProgramD/GetBotResponse?input={msg}
-		
-		// !! 텍스트 타입이라고 가정
 		String response = getResponse(messageIn.getContent());
 		
 		logger.info("response : {}", response);
@@ -85,12 +89,14 @@ public class HomeController {
 		
 		StringBuffer sb = null;
 		 try {
-
-			URL url = new URL(programDURL + content);
+			 
+			URL url = new URL(programDURL + URLEncoder.encode(content, IConstants.CHARSET.DFLT_CHARSET));
+			
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");
 			conn.setRequestProperty("Accept", "application/json");
-
+			conn.setRequestProperty("Content-Type", "application/json;charset=" + IConstants.CHARSET.DFLT_CHARSET);
+			
 			if (conn.getResponseCode() != 200) {
 				throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
 			}
@@ -99,13 +105,10 @@ public class HomeController {
 
 			String output;
 			
-			logger.info("Output from Server .... \n");
-			
 			sb = new StringBuffer();
 			while ((output = br.readLine()) != null) {
 				sb.append(output);
 			}
-			logger.info(">>>>> {}", sb.toString());
 			conn.disconnect();
 
 		} catch (MalformedURLException e) {
@@ -125,7 +128,6 @@ public class HomeController {
 	public void friendAdded(@RequestBody Friend friend) {
 		
 		logger.info("You have got a new friend. user_key : {}", friend.getUser_key());
-		
 	}
 	
 	/**
@@ -150,5 +152,21 @@ public class HomeController {
 		
 		logger.info("A friend left the chat room. user_key : {}", user_key);
 		
+	}
+	
+	public static void main(String[] args) throws UnsupportedEncodingException, MalformedURLException {
+		
+		String input = "안녕";
+		String encoded = URLEncoder.encode(input, "utf-8");
+		
+		System.out.println("input : " + input + ", encoded : " + encoded);
+		
+		input = encoded;
+		String decoded = URLDecoder.decode(input, "utf-8");
+		
+		System.out.println("decoded : " + decoded);
+		
+		URL url = new URL(programDURL + URLEncoder.encode("안녕", IConstants.CHARSET.DFLT_CHARSET));
+		System.out.println(url.toString());
 	}
 }
